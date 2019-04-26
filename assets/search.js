@@ -12,7 +12,7 @@ require([
 
     // Fetch the search index
     function fetchIndex() {
-        $.getJSON(gitbook.state.basePath+"/search_index.json")
+        return $.getJSON(gitbook.state.basePath+"/search_index.json")
         .then(loadIndex);
     }
 
@@ -70,7 +70,7 @@ require([
             $searchInput.focus();
         } else {
             $searchInput.blur();
-            $searchInput.val("");
+             $searchInput.val("");
             gitbook.sidebar.filter(null);
         }
     }
@@ -92,9 +92,13 @@ require([
 
     gitbook.events.bind("start", function(config) {
         // Pre-fetch search index and create the form
-        fetchIndex();
+        var fetchIndexPromise = fetchIndex();
         createForm();
 
+        gitbook.events.bind("page.change", function() {
+            fetchIndexPromise.then(recoverSearch);
+        });
+        
         // Type in search bar
         $(document).on("keyup", ".book-search input", function(e) {
             var key = (e.keyCode ? e.keyCode : e.which);
@@ -128,8 +132,6 @@ require([
         // Bind keyboard to toggle search
         gitbook.keyboard.bind(['f'], toggleSearch)
     });
-
-    gitbook.events.bind("page.change", recoverSearch);
 });
 
 
